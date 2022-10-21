@@ -1,0 +1,35 @@
+2) CREATE DATABASE cw2;
+3) CREATE EXTENSION postgis;
+4) 
+CREATE TABLE buildings(id int, geometry geometry, name varchar);
+CREATE TABLE roads(id int, geometry geometry, name varchar);
+CREATE TABLE poi(id int, geometry geometry, name varchar);
+
+5)
+INSERT INTO buildings VALUES
+(1, 'POLYGON((9 9, 10 9, 10 8, 9 8, 9 9))', 'BuildingD'),
+(2, 'POLYGON((3 8, 5 8, 5 6, 3 6, 3 8))', 'BuildingC'),
+(3, 'POLYGON((4 7, 6 7, 6 5, 4 5, 4 7))', 'BuildingB'),
+(4, 'POLYGON((8 4, 10.5 4, 10.5 1.5, 8 1.5, 8 4))', 'BuildingA'),
+(5, 'POLYGON((1 2, 2 2, 2 1, 1 1, 1 2))', 'BuildingF');
+
+INSERT INTO roads VALUES
+(1, 'LINESTRING(0 4.5, 12 4.5)', 'RoadX'),
+(2, 'LINESTRING(7.5 10.5, 7.5 0)', 'RoadY');
+
+INSERT INTO poi VALUES
+(1, 'POINT(6 9.5)', 'K'),
+(2, 'POINT(6.5 6)', 'J'),
+(3, 'POINT(9.5 6)', 'I'),
+(4, 'POINT(1 3.5)', 'G'),
+(5, 'POINT(5.5 1.5)', 'H');
+
+6) 
+a) select sum(ST_length(geometry)) as total_length from roads
+b) select ST_ASTEXT(geometry) as wkt, ST_area(geometry) as area, ST_Perimeter(geometry) as perimeter from buildings where name = 'BuildingA'
+c) select name, ST_area(geometry) as area from buildings order by name ASC
+d) select name, ST_perimeter(geometry) as perimeter from (select name, geometry, ST_area(geometry) as area  from buildings ) as a order by area desc limit 2
+e) select ST_distance(b.geometry,p.geometry) from buildings b cross join poi p where b.name ='BuildingC' and p.name = 'K'
+f) select ST_area(ST_Difference(compute.geometry, tab.buffer)) from (select c.geometry, ST_buffer(b.geometry, 0.5) as buffer  from  buildings b, buildings c where b.name = 'BuildingB' and c.name = 'BuildingC') as tab
+g) select b.name from buildings b, roads r where r.name = 'RoadX' and ST_Y(ST_CENTROID(b.geometry)) - ST_Y(ST_CENTROID(r.geometry)) > 0;
+h) select ST_area(ST_Difference(b.geometry, ST_Polygon('LINESTRING (4 7, 6 7, 6 8, 4 8, 4 7)'::geometry, 0))) from buildings b where name = 'BuildingC'

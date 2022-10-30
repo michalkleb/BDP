@@ -30,6 +30,6 @@ b) select ST_ASTEXT(geometry) as wkt, ST_area(geometry) as area, ST_Perimeter(ge
 c) select name, ST_area(geometry) as area from buildings order by name ASC
 d) select name, ST_perimeter(geometry) as perimeter from (select name, geometry, ST_area(geometry) as area  from buildings ) as a order by area desc limit 2
 e) select ST_distance(b.geometry,p.geometry) from buildings b cross join poi p where b.name ='BuildingC' and p.name = 'K'
-f) select ST_area(ST_Difference(compute.geometry, tab.buffer)) from (select c.geometry, ST_buffer(b.geometry, 0.5) as buffer  from  buildings b, buildings c where b.name = 'BuildingB' and c.name = 'BuildingC') as tab
+f) select ST_area(ST_Difference(tab.geometry, tab.buffer)) from (select c.geometry, ST_buffer(b.geometry, 0.5) as buffer  from  buildings b, buildings c where b.name = 'BuildingB' and c.name = 'BuildingC') as tab
 g) select b.name from buildings b, roads r where r.name = 'RoadX' and ST_Y(ST_CENTROID(b.geometry)) - ST_Y(ST_CENTROID(r.geometry)) > 0;
 h) select ST_area(ST_Difference(b.geometry, ST_Polygon('LINESTRING (4 7, 6 7, 6 8, 4 8, 4 7)'::geometry, 0))) from buildings b where name = 'BuildingC'

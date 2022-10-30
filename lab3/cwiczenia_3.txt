@@ -1,0 +1,42 @@
+Zadanie 1
+CREATE DATABASE cw3
+CREATE EXTENSION postgis;
+shp2pgsql -s 4326 T2018_KAR_BUILDINGS.shp buildings2018 | psql -h localhost -p 5432 -U postgres   -d cw3
+shp2pgsql -s 4326 T2019_KAR_BUILDINGS.shp buildings2019 | psql -h localhost -p 5432 -U postgres   -d cw3
+select b2.*  from buildings2018 b right join buildings2019 b2  on b.geom = b2.geom where b.gid is NULL
+
+
+Zadanie 2
+shp2pgsql -s 4326 T2019_KAR_POI_TABLE.shp poi2019 | psql -h localhost -p 5432 -U postgres -d cw3
+shp2pgsql -s 4326 T2018_KAR_POI_TABLE.shp poi2018 | psql -h localhost -p 5432 -U postgres -d cw3
+create view new_pois as select b.*  from poi2019 b left join poi2018 b2  on b.geom = b2.geom where b2.gid is null;
+create view pois_buffer as select * from new_pois a, (select ST_buffer(b.geom, 0.005) as buffer  from  new_buildings b ) a2 where ST_contains(a2.buffer,a.geom ) = true;
+select type, count(type) from pois_buffer group by type
+
+
+Zadanie 3
+shp2pgsql -s 3068 T2019_KAR_STREETS.shp streets_reprojected | psql -h localhost -p 5432 -U postgres -d cw3
+
+
+Zadanie 4
+create table inputs_points (id int, name varchar, geom geometry)
+
+INSERT INTO inputs_points VALUES
+(1, 'first', 'POINT(8.36093 49.03174)'),
+(2, 'second', 'POINT(8.39876 49.00644)');
+
+
+Zadanie 5
+update inputs_points set geom = st_transform(ST_SetSRID(geom,4326),3068)
+
+
+Zadanie 6
+select * from street_node_2019 sn, (select st_buffer(line.geom, 0.002) as buffer from (select st_makeline(st_transform(ip.geom,4326)) as geom from inputs_points ip) as line) buffer_line where st_contains(buffer_line.buffer, sn.geom)
+
+
+Zadanie 7
+select * from poi2019 p, (select st_buffer(geom,0.002) as buffer from land_use_2019) parks_buffer  where p.type = 'Sporting Goods Store' and st_contains(parks_buffer.buffer,p.geom)
+
+
+Zadanie 8
+create table T2019_KAR_BRIDGES as(select  st_intersection(r.geom, w.geom) as intersection from railways2019 r, water2019 w )
